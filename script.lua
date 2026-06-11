@@ -41,15 +41,16 @@ toggleButton.TextSize = 14
 toggleButton.Parent = screenGui
 local tCorner = Instance.new("UICorner") tCorner.CornerRadius = UDim.new(0, 5) tCorner.Parent = toggleButton
 
--- KHUNG CHÍNH
+-- KHUNG CHÍNH (Thu gọn chiều cao từ 380 xuống 350 để mất khoảng trống)
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 240, 0, 380)
+mainFrame.Size = UDim2.new(0, 240, 0, 350)
 mainFrame.Position = UDim2.new(0.02, 0, 0.15, 0)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.Parent = screenGui
 local mCorner = Instance.new("UICorner") mCorner.CornerRadius = UDim.new(0, 8) mCorner.Parent = mainFrame
 
-local title = Instance.new("TextLabel")
+-- THANH TIÊU ĐỀ (Dùng để nắm kéo di chuyển)
+local title = Instance.new("TextButton")
 title.Size = UDim2.new(1, 0, 0, 35)
 title.Text = "⚡ DELTA GOD V5 ⚡"
 title.TextColor3 = Color3.fromRGB(0, 255, 255)
@@ -58,9 +59,10 @@ title.TextSize = 15
 title.BackgroundTransparency = 1
 title.Parent = mainFrame
 
+-- KHUNG CUỘN TÍNH NĂNG (Bao trọn không để khoảng hở)
 local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1, -10, 1, -45)
-scroll.Position = UDim2.new(0, 5, 0, 40)
+scroll.Size = UDim2.new(1, -10, 1, -40)
+scroll.Position = UDim2.new(0, 5, 0, 35)
 scroll.BackgroundTransparency = 1
 scroll.ScrollBarThickness = 4
 scroll.Parent = mainFrame
@@ -70,10 +72,35 @@ layout.Padding = UDim.new(0, 6)
 layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 layout.Parent = scroll
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 15)
+    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
 end)
 
--- Hàm tạo nút tính năng nhanh, không lỗi UI
+-- LOGIC KÉO DI CHUYỂN MENU (DRAGGABLE)
+local dragging, dragInput, dragStart, startPos
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+userInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then update(input) end
+end)
+
+-- Hàm tạo nút tính năng nhanh
 local function createBtn(text, color)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -10, 0, 32)
@@ -109,13 +136,13 @@ local wpc1 = Instance.new("UICorner") wpc1.CornerRadius = UDim.new(0, 5) wpc1.Pa
 local wpAdd = Instance.new("TextButton") wpAdd.Size = UDim2.new(1, -145, 1, 0) wpAdd.Position = UDim2.new(0, 145, 0, 0) wpAdd.Text = "Lưu Điểm" wpAdd.BackgroundColor3 = Color3.fromRGB(0, 90, 180) wpAdd.TextColor3 = Color3.fromRGB(255, 255, 255) wpAdd.Font = Enum.Font.SourceSansBold wpAdd.TextSize = 12 wpAdd.Parent = wpFrame
 local wpc2 = Instance.new("UICorner") wpc2.CornerRadius = UDim.new(0, 5) wpc2.Parent = wpAdd
 
-local wpScroll = Instance.new("ScrollingFrame") wpScroll.Size = UDim2.new(1, -10, 0, 80) wpScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35) wpScroll.ScrollBarThickness = 2 wpScroll.Parent = scroll
+local wpScroll = Instance.new("ScrollingFrame") wpScroll.Size = UDim2.new(1, -10, 0, 75) wpScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35) wpScroll.ScrollBarThickness = 2 wpScroll.Parent = scroll
 local wpc3 = Instance.new("UICorner") wpc3.CornerRadius = UDim.new(0, 5) wpc3.Parent = wpScroll
 local wpList = Instance.new("UIListLayout") wpList.Padding = UDim.new(0, 3) wpList.Parent = wpScroll
 wpList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function() wpScroll.CanvasSize = UDim2.new(0, 0, 0, wpList.AbsoluteContentSize.Y + 5) end)
 
 ---------------------------------------------------------
--- PHẦN LOGIC TÍNH NĂNG (ĐÃ TỐI ƯU HÓA)
+-- PHẦN LOGIC TÍNH NĂNG
 ---------------------------------------------------------
 toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
@@ -186,7 +213,7 @@ local function setInfJump(state)
 end
 infJumpBtn.MouseButton1Click:Connect(function() setInfJump(not config.infJump) end)
 
--- 4. FULLBRIGHT (Làm sáng)
+-- 4. FULLBRIGHT
 local brightConn
 local function setFullbright(state)
     config.fullbright = state
@@ -203,7 +230,7 @@ local function setFullbright(state)
 end
 brightBtn.MouseButton1Click:Connect(function() setFullbright(not config.fullbright) end)
 
--- 5. NO FOG (Xóa sương mù độc lập)
+-- 5. NO FOG
 local fogConn
 local function setNoFog(state)
     config.nofog = state
@@ -221,7 +248,7 @@ local function setNoFog(state)
 end
 fogBtn.MouseButton1Click:Connect(function() setNoFog(not config.nofog) end)
 
--- 6. ESP (CHAMS)
+-- 6. ESP
 local espConns = {}
 local function addESP(plr)
     if plr == player then return end
@@ -266,7 +293,7 @@ end
 tpBtn.MouseButton1Click:Connect(function() setTpWalk(not config.tpWalk) end)
 tpVal.FocusLost:Connect(function() config.tpWalkSpeed = tpVal.Text end)
 
--- 8. WAYPOINTS UI
+-- 8. WAYPOINTS
 local function createWpUI(name, x, y, z)
     local f = Instance.new("Frame") f.Size = UDim2.new(1, 0, 0, 24) f.BackgroundTransparency = 1 f.Name = name f.Parent = wpScroll
     local b = Instance.new("TextButton") b.Size = UDim2.new(1, -30, 1, 0) b.Text = "📍 "..name b.BackgroundColor3 = Color3.fromRGB(50, 50, 50) b.TextColor3 = Color3.fromRGB(255,255,255) b.TextSize = 11 b.Parent = f
@@ -288,7 +315,7 @@ wpAdd.MouseButton1Click:Connect(function()
     end
 end)
 
--- TỰ ĐỘNG KHÔI PHỤC KHI SPAWN / UPDATE CONFIG
+-- TỰ ĐỘNG KHÔI PHỤC KHI SPAWN
 player.CharacterAdded:Connect(function()
     task.wait(0.6)
     if config.fly then setFly(true) end
